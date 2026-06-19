@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wilde — A trip planning app for BWCA paddlers</title>
+  <meta name="description" content="Wilde is a trip planning app that helps BWCA trip leads coordinate gear, meals, and logistics — and come back with something worth keeping." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-primary:        #1D9E75;
+      --color-primary-light:  #E1F5EE;
+      --color-secondary:      #3C3489;
+      --color-accent:         #F5C87A;
+      --color-surface-1:      #F7F5F0;
+      --color-surface-2:      #EEECEA;
+      --color-text-primary:   #444441;
+      --color-text-secondary: #888780;
+      --color-text-tertiary:  #7A8389;
+      --color-border:         #D3D1C7;
+
+      /* Accessible text variants — darkened for WCAG AA at small sizes */
+      --color-teal-text:      #157A5A;
+      --color-text-darker:    #6B6B66;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--color-surface-1);
+      color: var(--color-text-primary);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ─────────────────────────────────── */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Ruled header strip ──────────────────────── */
+    .ruled-top {
+      border-bottom: 1px solid var(--color-border);
+      padding: 20px 0 18px;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wordmark {
+      font-family: 'Lora', serif;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--color-text-primary);
+      text-decoration: none;
+    }
+
+    .launch-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-darker);
+      border: 1px solid var(--color-border);
+      border-radius: 100px;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+
+    /* ── Hero ────────────────────────────────────── */
+    .hero {
+      padding: 56px 0 48px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .hero-hook {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--color-text-darker);
+      margin-bottom: 12px;
+    }
+
+    .hero-headline {
+      font-family: 'Lora', serif;
+      font-size: clamp(28px, 6vw, 38px);
+      font-weight: 400;
+      line-height: 1.25;
+      color: var(--color-text-primary);
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      color: var(--color-primary);
+    }
+
+    .hero-body {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--color-text-darker);
+      max-width: 460px;
+    }
+
+    /* ── Rule divider ────────────────────────────── */
+    .ruled-section {
+      padding: 40px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-darker);
+      margin-bottom: 16px;
+    }
+
+    /* ── Chip questions ──────────────────────────── */
+    .question-block {
+      margin-bottom: 28px;
+    }
+
+    .question-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .question-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 10px;
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: 100px;
+      background: var(--color-surface-1);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--color-text-darker);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chip:hover {
+      border-color: var(--color-primary);
+      color: var(--color-text-primary);
+    }
+
+    .chip.selected {
+      background: var(--color-primary-light);
+      border-color: var(--color-primary);
+      color: var(--color-teal-text);
+      font-weight: 500;
+    }
+
+    .skip-link {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--color-text-darker);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .skip-link:hover {
+      color: var(--color-text-primary);
+    }
+
+    /* ── Email form ──────────────────────────────── */
+    .form-section {
+      padding: 40px 0 48px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .email-input {
+      flex: 1;
+      height: 48px;
+      padding: 0 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--color-text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .email-input::placeholder {
+      color: var(--color-text-darker);
+    }
+
+    .email-input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .submit-btn {
+      height: 48px;
+      padding: 0 22px;
+      background: var(--color-teal-text);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+      min-width: 120px;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.88;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .form-note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--color-text-darker);
+    }
+
+    /* ── Success state ───────────────────────────── */
+    .success-block {
+      display: none;
+      padding: 24px;
+      background: var(--color-primary-light);
+      border: 1px solid var(--color-primary);
+      border-radius: 8px;
+    }
+
+    .success-block.visible {
+      display: block;
+    }
+
+    .success-block p {
+      font-family: 'Lora', serif;
+      font-size: 16px;
+      color: var(--color-teal-text);
+      line-height: 1.5;
+    }
+
+    /* ── Error ───────────────────────────────────── */
+    .error-msg {
+      display: none;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #c0392b;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    /* ── Footer detail ───────────────────────────── */
+    .footer {
+      padding: 28px 0;
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: var(--color-text-darker);
+      line-height: 1.6;
+    }
+
+    .footer-text a {
+      color: var(--color-text-darker);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ── Topo rule ornament ──────────────────────── */
+    .topo-rule {
+      width: 100%;
+      height: 1px;
+      background: var(--color-border);
+      position: relative;
+      margin: 0;
+    }
+
+    /* ── Mobile ──────────────────────────────────── */
+    @media (max-width: 480px) {
+      .form-row {
+        flex-direction: column;
+      }
+      .submit-btn {
+        width: 100%;
+        height: 52px;
+      }
+      .hero {
+        padding: 48px 0 36px;
+      }
+      .launch-tag {
+        font-size: 10px;
+        padding: 4px 9px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header class="ruled-top">
+    <div class="container header-row">
+      <a href="/" class="wordmark">Wilde</a>
+      <span class="launch-tag">Coming Fall 2026</span>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main>
+    <section class="hero">
+      <div class="container">
+        <p class="hero-hook">The BWCA doesn't forgive bad planning.</p>
+        <h1 class="hero-headline">
+          Plan well. Go light.<br>
+          <em>Come back with something.</em>
+        </h1>
+        <p class="hero-body">
+          Wilde is a trip planning app built by a paddler with 30 years on these lakes. It helps your group get ready — gear sorted, weight dialed, everyone on the same page — and brings it all home as a record worth keeping.
+        </p>
+      </div>
+    </section>
+
+    <!-- Chip questions -->
+    <section class="ruled-section" id="questions">
+      <div class="container">
+        <p class="section-label">A few quick questions — optional</p>
+
+        <!-- Q1: Tripper archetype -->
+        <div class="question-block" data-question="archetype">
+          <p class="question-text">How would you describe your BWCA experience?</p>
+          <div class="chip-group">
+            <button class="chip" data-value="first-timer">First trip coming up</button>
+            <button class="chip" data-value="occasional">A few trips under my belt</button>
+            <button class="chip" data-value="regular">Go most years</button>
+            <button class="chip" data-value="veteran">Been going for decades</button>
+          </div>
+        </div>
+
+        <!-- Q2: Planning style -->
+        <div class="question-block" data-question="planning_style">
+          <p class="question-text">When you plan a trip, you tend to be...</p>
+          <div class="chip-group">
+            <button class="chip" data-value="planner">A planner — route locked weeks out</button>
+            <button class="chip" data-value="flexible">Structured but flexible</button>
+            <button class="chip" data-value="loose">Loose plan — general direction, wing the rest</button>
+          </div>
+        </div>
+
+        <!-- Q3: Post-trip memory -->
+        <div class="question-block" data-question="memory_wish">
+          <p class="question-text">After a trip, what do you most wish you had?</p>
+          <div class="chip-group">
+            <button class="chip" data-value="record">A record of where we went and what happened there</button>
+            <button class="chip" data-value="photos">Photos organized and shared in one place</button>
+            <button class="chip" data-value="notes">Notes on routes, portages, campsites for next time</button>
+            <button class="chip" data-value="stats">Fish caught, lakes covered, miles paddled</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Email capture -->
+    <section class="form-section" id="signup">
+      <div class="container">
+        <p class="section-label">Get early access</p>
+
+        <div id="form-wrapper">
+          <div class="form-row">
+            <input
+              type="email"
+              id="email-input"
+              class="email-input"
+              placeholder="your@email.com"
+              autocomplete="email"
+              inputmode="email"
+            />
+            <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">
+              Notify me
+            </button>
+          </div>
+          <p class="form-note">No spam. One email when Wilde is ready.</p>
+          <p class="error-msg" id="error-msg">Something went wrong. Try again or email us at getwildeapp@gmail.com.</p>
+        </div>
+
+        <div class="success-block" id="success-block">
+          <p>You're on the list. We'll be in touch before the January permit window.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p class="footer-text">
+        Wilde is built by a BWCA paddler, for BWCA paddlers. bewilde.app &nbsp;·&nbsp;
+        <a href="mailto:getwildeapp@gmail.com">getwildeapp@gmail.com</a>
+      </p>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ── Chip selection ────────────────────────────────────────────────
+  const answers = {};
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const block = chip.closest('[data-question]');
+      const question = block.dataset.question;
+
+      // Deselect siblings
+      block.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+
+      chip.classList.add('selected');
+      answers[question] = chip.dataset.value;
+    });
+  });
+
+  // ── Form submit ───────────────────────────────────────────────────
+  async function handleSubmit() {
+    const emailEl = document.getElementById('email-input');
+    const btn = document.getElementById('submit-btn');
+    const errorEl = document.getElementById('error-msg');
+    const successEl = document.getElementById('success-block');
+    const formWrapper = document.getElementById('form-wrapper');
+
+    const email = emailEl.value.trim();
+
+    // Basic validation
+    if (!email || !email.includes('@')) {
+      emailEl.focus();
+      emailEl.style.borderColor = '#c0392b';
+      return;
+    }
+
+    emailEl.style.borderColor = '';
+    errorEl.classList.remove('visible');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    // ── MailerLite configuration ──────────────────────────────────
+    // REPLACE THESE VALUES before deploying:
+    const MAILERLITE_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiYTM2YjJhY2FmMmY1MDk0NzNjYWRhNjMyOWQ5MGRhNjVlODUwZjk2YmVlOTgyNGRiMzhkNjk5YmZlODU2YmRiYjAxM2FjZjUxYTg1YjQwMjUiLCJpYXQiOjE3ODE4MTU3NzEuMjQ4MjY5LCJuYmYiOjE3ODE4MTU3NzEuMjQ4MjcxLCJleHAiOjQ5Mzc0ODkzNzEuMjQzNzUzLCJzdWIiOiIxMjMzNTU3Iiwic2NvcGVzIjpbXX0.hZVqlGEsYZ4NOzBspOiq4HAalUYO_5aAwINPSSZIVV_KxDhy40PNiZT8Z1oJ2H1Z4Tl5l8XSHpmgadYI82QmcpNKQPmLuvlRmuUEnorLQ0vJtXBbrjyKAuxTERVaSgCNZL7-0RhWjPvlt35FyCDruu8vSM6Jd2LTPU8Oji7AQuryQFx2i4lZubZB-Zg00czAtaL7zkkv_kOuCHiEEIZ-bPtu0KXsn0UZfY8NgL5Pc6Kyu9bMqfdHV2wz9MrHfviepUB7kqQarhr8LmWonDKVrGi1zWNgwi5LXGRVqEfNArBcs6gbcyYr9FPZjkDPaTSqr7FZvMnGCxsUoPODwVGWSn-if8umAXpFgeVnBugOvOOVAQ2uLbQpc9RXX943EtRyQ6dGtchHcjnq9GVXbxDpPgcgd2pHjARDrvL0rDzluG1AMIE223b0cCu2vLAfAfHx2sYoWK2X41m3KWc6XUCG22yETCP-2lUvux9fz_SNYoM67tLsu_tIQoZRFZP9i87H2_C3UK17G-3fwDbB7pLftEunuWoI4JsRd1b0WkVU9wF5GLDGpA_vlaYdhwwIMGMjuO8uCHUmr8OJBXDsEPJg_AGapQ5kg4YBnlKfJFZv9G7U5SXn-BM4FlRqYrX3qCg8fkfSd5gOhTDWeALcJTjhTXHEyCLVBoZXncmqHvKZzvY';
+    const MAILERLITE_GROUP_ID = '190647464897808110';
+    // ─────────────────────────────────────────────────────────────
+
+    const payload = {
+      email: email,
+      fields: {
+        archetype:      answers.archetype      || '',
+        planning_style: answers.planning_style || '',
+        memory_wish:    answers.memory_wish    || '',
+      },
+      groups: [MAILERLITE_GROUP_ID],
+    };
+
+    try {
+      const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MAILERLITE_API_KEY}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`MailerLite error: ${res.status}`);
+      }
+
+      // Success
+      formWrapper.style.display = 'none';
+      successEl.classList.add('visible');
+
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = 'Notify me';
+      errorEl.classList.add('visible');
+    }
+  }
+
+  // Allow Enter key to submit
+  document.getElementById('email-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleSubmit();
+  });
+</script>
+</body>
+</html>
