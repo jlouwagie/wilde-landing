@@ -220,24 +220,24 @@
       align-items: stretch;
     }
 
-.email-input {
-  flex: 1;
-  width: 100%;
-  min-width: 0;
-  height: 48px;
-  padding: 0 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: white;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  color: var(--color-text-primary);
-  outline: none;
-  transition: border-color 0.15s;
-  -webkit-appearance: none;
-  appearance: none;
-  box-sizing: border-box;
-}
+    .email-input {
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      height: 48px;
+      padding: 0 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--color-text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+    }
 
     .email-input::placeholder {
       color: var(--color-text-darker);
@@ -518,37 +518,29 @@
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
-    // ── MailerLite configuration ──────────────────────────────────
-    // New Wilde-specific free-tier account, set up July 2026 after
-    // the previous account was paused.
-    const MAILERLITE_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOTI4MDE0MDE3MzIyNzVhZDBkNWE4YzI5MjdmYjkxNmQ1ZTkzODM2YjY4M2ZhZTE5YWQxOTVkYzFmMmE4OTk2MDQyM2JiZmIwMjZhZTAzYmEiLCJpYXQiOjE3ODQzOTcwMjIuODc4NjQ5LCJuYmYiOjE3ODQzOTcwMjIuODc4NjUyLCJleHAiOjQ5NDAwNzA2MjIuODcxOTExLCJzdWIiOiIyNTM1OTY2Iiwic2NvcGVzIjpbXX0.VVvzxOjbkWZJUcioKZTwN7JyBz00REdln-gCH_Y8JtZTwS60-xAfh-ExBy34SrJu28dZ6JLpaIhxAxnoz98gpOJ6UsEHXDmIBxyaHIU2MVTCAvs7ZqlBCKvg3tLSTIimzDO5xCl7Y6LOdMWKNzBBYoAfWsJaE-p4Wqfxl1GfjbYTryOs7TJ700PwGCP84xcvzCfWUJnDdTP6sjMVyeNpBiRUl4CKg8hWzNP_eczsgsoWIIkcVZBDU_Ae1ktqZ9DUaNAwr2jQ6yIf_c5MC-XOf0glw3Iz-gGWx-JZvecoaKPvgrvAVEtovPgLKxiMRUYLUT55I9ciK8fNyuzgP_cnarHpViTFL99MkpcMpwky4FapbwO-qXwDtLG7WmL-K9Y03D7CSjBXuUigWmXacLhExR2TWIiJ5neIe8TgpBBrnRRKaGrcg1u3EqrPYAVeqUK2Nuwylg6j9-3TbfympEJXRV_8nQCJc-kBcWbMPE27oTeD4v019Htge-xlltk0CSceJegrKeOM5NySHb63VoBlJq-mkr9ADdd1jxDhrVdqzPFMzys0Id9KbGEEuxBpwJ-f913yi3p0YSXs8iEm2NA0U4BIj78p53cFwPBIx4-oZ9kp7EmkZwXfDAq_dQF4XW8NQrzbrjXgqCY02aJHtZzSwiR4_x13Qdfs2GAsk_IUtJg';
-    const MAILERLITE_GROUP_ID = '193354559800739826';
-    // ─────────────────────────────────────────────────────────────
-
-    const payload = {
-      email: email,
-      fields: {
-        archetype:      answers.archetype      || '',
-        planning_style: answers.planning_style || '',
-        memory_wish:    answers.memory_wish    || '',
-      },
-      groups: [MAILERLITE_GROUP_ID],
-    };
-
     try {
-      const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
+      // Server-side route (api/subscribe.js) holds the MailerLite key.
+      const res = await fetch('/api/subscribe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${MAILERLITE_API_KEY}`,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          archetype:      answers.archetype      || '',
+          planning_style: answers.planning_style || '',
+          memory_wish:    answers.memory_wish    || '',
+        }),
       });
 
       if (!res.ok) {
-        throw new Error(`MailerLite error: ${res.status}`);
+        throw new Error(`Subscribe error: ${res.status}`);
       }
+
+      // GA4 conversion event, fires only after a successful signup
+      gtag('event', 'waitlist_signup', {
+        archetype:      answers.archetype      || 'skipped',
+        planning_style: answers.planning_style || 'skipped',
+        memory_wish:    answers.memory_wish    || 'skipped',
+      });
 
       // Success
       formWrapper.style.display = 'none';
